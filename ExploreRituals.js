@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './ExploreRituals.css';
-import hampiImage from '../assets/hampii.jpg';
+import hampiImage from '../assets/hampi1.jpg';
 import meenakshiImage from '../assets/meenakshi.jpg';
 
 const ExploreRituals = () => {
