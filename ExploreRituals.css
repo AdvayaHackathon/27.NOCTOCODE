@@ -1,0 +1,97 @@
+.explore-container {
+    min-height: 100vh;
+    background: linear-gradient(to bottom, #f8f4ea, #f2e3c6);
+    font-family: 'Georgia', serif;
+    color: #2c2c2c;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 3rem 1.5rem;
+  }
+  
+  .explore-container h1 {
+    font-size: 2.8rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    color: #4b2e1f;
+  }
+  
+  .explore-container p {
+    font-size: 1.2rem;
+    max-width: 700px;
+    line-height: 1.6;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .monument-grid {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+  
+  .monument-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    width: 280px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    text-align: center;
+  }
+  
+  .monument-card:hover {
+    transform: scale(1.05);
+  }
+  
+  .monument-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+  }
+  
+  .monument-card h2 {
+    font-size: 1.1rem;
+    margin: 1rem;
+    color: #3b2f2f;
+  }
+  
+  .vr-launch-button {
+    font-size: 1.2rem;
+    font-weight: bold;
+    background-color: #c64824;
+    color: white;
+    border: none;
+    border-radius: 0.6rem;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .vr-launch-button:hover {
+    background-color: #a23b1d;
+  }
+  
+  .vr-instructions {
+    margin-top: 2.5rem;
+    font-size: 1rem;
+    color: #555;
+    max-width: 600px;
+    text-align: center;
+  }
+  
+  @media (max-width: 768px) {
+    .explore-container h1 {
+      font-size: 2rem;
+    }
+  
+    .vr-launch-button {
+      width: 90%;
+      font-size: 1rem;
+    }
+  }
+  
