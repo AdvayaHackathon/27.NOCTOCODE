@@ -1,59 +1,161 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
-    <title>VR Tour</title>
+    <meta charset="utf-8">
+    <title>VR Tour - CultureLens</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+      body { margin: 0; overflow: hidden; }
+      #instructions, #nextBtn {
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        font-family: sans-serif;
+        z-index: 2;
+        color: white;
+      }
+      #instructions {
+        top: 10px;
+        font-size: 1.2em;
+      }
+      #nextBtn {
+        bottom: 20px;
+        display: none;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 1em;
+        border: none;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
-    <a-scene embedded vr-mode-ui="enabled: true">
-      <a-assets>
-        <img id="hampiRuins" src="./assets/hampi-ruins.jpg" />
-        <img id="hampiRestored" src="./assets/hampi-restored.jpg" />
+    <div id="instructions">Exploring: <span id="sceneTitle">Loading...</span></div>
+    <div id="nextBtn"><button onclick="loadNextScene()">Next</button></div>
 
-        <img id="meenakshiRuins" src="./assets/meenakshi-ruins.jpg" />
-        <img id="meenakshiRestored" src="./assets/meenakshi-restored.jpg" />
-      </a-assets>
+    <a-scene id="vrScene" background="color: #000">
+      <a-assets id="modelAssets"></a-assets>
 
-      <a-sky id="skybox" rotation="0 -130 0" toggle-sky></a-sky>
+      <a-entity light="type: ambient; intensity: 1.2"></a-entity>
+      <a-entity light="type: directional; intensity: 1" position="2 4 -2"></a-entity>
 
-      <a-entity camera look-controls wasd-controls position="0 1.6 0">
-        <a-entity
-          cursor="fuse: true; fuseTimeout: 1000"
-          geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
-          material="color: black; shader: flat"
-          position="0 0 -1"
-        ></a-entity>
+      <a-entity position="0 1.6 5">
+        <a-camera wasd-controls look-controls>
+          <a-cursor
+            fuse="true"
+            fuseTimeout="1500"
+            material="color: white"
+            geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+            position="0 0 -1"
+          ></a-cursor>
+        </a-camera>
       </a-entity>
 
-      <script>
-        AFRAME.registerComponent("toggle-sky", {
-          init: function () {
-            const sky = this.el;
-            const query = new URLSearchParams(window.location.search);
-            const monument = query.get("monument") || "hampi";
+      <a-entity id="sceneModel" position="0 0 0" scale="3 3 3"></a-entity>
 
-            let ruinsId = "";
-            let restoredId = "";
-
-            if (monument === "meenakshi") {
-              ruinsId = "#meenakshiRuins";
-              restoredId = "#meenakshiRestored";
-            } else {
-              ruinsId = "#hampiRuins";
-              restoredId = "#hampiRestored";
-            }
-
-            let showingRuins = true;
-            sky.setAttribute("src", ruinsId);
-
-            this.el.addEventListener("click", () => {
-              showingRuins = !showingRuins;
-              sky.setAttribute("src", showingRuins ? ruinsId : restoredId);
-            });
-          },
-        });
-      </script>
+      <!-- Navigation Arrow -->
+      <a-entity
+        id="navArrow"
+        geometry="primitive: cone; radiusBottom: 0.2; height: 0.4"
+        material="color: yellow; emissive: orange"
+        position="0 0 -3"
+        rotation="-90 0 0"
+        visible="false"
+        class="clickable"
+      ></a-entity>
     </a-scene>
+
+    <script>
+      const scenes = [
+        {
+          title: "Virupaksha Temple Entrance",
+          modelUrl: "/assets/models/hampi-scene1.glb",
+          narration: {
+            en: "Welcome to the sacred entrance of the Virupaksha Temple, Hampi. This temple has been a place of worship for over a thousand years."
+          },
+          ambience: "/assets/sounds/temple_bells.mp3"
+        },
+        {
+          title: "Stone Chariot at Vittala Temple",
+          modelUrl: "/assets/models/hampi-scene2.glb",
+          narration: {
+            en: "Now you’re standing before the iconic Stone Chariot at Vittala Temple, a symbol of Hampi's architectural brilliance."
+          },
+          ambience: "/assets/sounds/market_ambience.mp3"
+        }
+      ];
+
+      let currentScene = 0;
+      const sceneEntity = document.getElementById('sceneModel');
+      const assets = document.getElementById('modelAssets');
+      const sceneTitle = document.getElementById('sceneTitle');
+      const nextBtn = document.getElementById('nextBtn');
+      const navArrow = document.getElementById('navArrow');
+
+      function loadScene(index) {
+        const scene = scenes[index];
+        sceneTitle.innerText = scene.title;
+
+        // Clear previous
+        assets.innerHTML = '';
+        sceneEntity.innerHTML = '';
+        sceneEntity.removeAttribute('gltf-model');
+        navArrow.setAttribute('visible', 'false');
+        nextBtn.style.display = "none";
+
+        const assetId = `model${index}`;
+        const assetItem = document.createElement('a-asset-item');
+        assetItem.setAttribute('id', assetId);
+        assetItem.setAttribute('src', scene.modelUrl);
+
+        assetItem.addEventListener('loaded', () => {
+          sceneEntity.setAttribute('gltf-model', `#${assetId}`);
+        });
+
+        assets.appendChild(assetItem);
+
+        // Ambient sound
+        if (scene.ambience) {
+          const soundEntity = document.createElement('a-entity');
+          soundEntity.setAttribute('sound', `src: ${scene.ambience}; autoplay: true; loop: true`);
+          sceneEntity.appendChild(soundEntity);
+        }
+
+        // Narration with callback
+        speak(scene.narration.en, () => {
+          nextBtn.style.display = "block";
+          navArrow.setAttribute('visible', 'true');
+        });
+      }
+
+      function speak(text, onEnd) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.onend = onEnd;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
+      }
+
+      function loadNextScene() {
+        if (currentScene < scenes.length - 1) {
+          currentScene++;
+          loadScene(currentScene);
+        } else {
+          alert("You've completed the walkthrough!");
+        }
+      }
+
+      window.onload = () => {
+        navArrow.addEventListener('click', loadNextScene);
+        loadScene(currentScene);
+      };
+    </script>
   </body>
 </html>
