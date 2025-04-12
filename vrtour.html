@@ -1,161 +1,94 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
-    <title>VR Tour - CultureLens</title>
+    <meta charset="utf-8" />
+    <title>VR Walkthrough - CultureLens</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <style>
       body { margin: 0; overflow: hidden; }
-      #instructions, #nextBtn {
+      #instructions {
         position: absolute;
+        top: 10px;
         width: 100%;
         text-align: center;
         font-family: sans-serif;
-        z-index: 2;
         color: white;
-      }
-      #instructions {
-        top: 10px;
         font-size: 1.2em;
-      }
-      #nextBtn {
-        bottom: 20px;
-        display: none;
-      }
-      button {
-        padding: 10px 20px;
-        font-size: 1em;
-        border: none;
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border-radius: 10px;
-        cursor: pointer;
+        z-index: 2;
       }
     </style>
   </head>
   <body>
-    <div id="instructions">Exploring: <span id="sceneTitle">Loading...</span></div>
-    <div id="nextBtn"><button onclick="loadNextScene()">Next</button></div>
+    <div id="instructions">Walk forward to explore monuments — narration will guide you</div>
 
-    <a-scene id="vrScene" background="color: #000">
-      <a-assets id="modelAssets"></a-assets>
+    <a-scene>
+      <!-- Sky and Ground -->
+      <a-sky color="#87CEEB"></a-sky>
+      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#D2B48C"></a-plane>
 
-      <a-entity light="type: ambient; intensity: 1.2"></a-entity>
-      <a-entity light="type: directional; intensity: 1" position="2 4 -2"></a-entity>
+      <!-- Lighting -->
+      <a-entity light="type: ambient; intensity: 1.2; color: #fff8dc"></a-entity>
+      <a-entity light="type: directional; intensity: 0.8" position="2 4 -2"></a-entity>
 
-      <a-entity position="0 1.6 5">
-        <a-camera wasd-controls look-controls>
-          <a-cursor
-            fuse="true"
-            fuseTimeout="1500"
-            material="color: white"
+      <!-- Camera Rig -->
+      <a-entity id="rig" position="0 1.6 5">
+        <a-camera id="userCam" wasd-controls look-controls>
+          <a-cursor fuse="true" fuseTimeout="1500"
             geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
-            position="0 0 -1"
-          ></a-cursor>
+            material="color: white; shader: flat" position="0 0 -1">
+          </a-cursor>
         </a-camera>
       </a-entity>
 
-      <a-entity id="sceneModel" position="0 0 0" scale="3 3 3"></a-entity>
-
-      <!-- Navigation Arrow -->
-      <a-entity
-        id="navArrow"
-        geometry="primitive: cone; radiusBottom: 0.2; height: 0.4"
-        material="color: yellow; emissive: orange"
-        position="0 0 -3"
-        rotation="-90 0 0"
-        visible="false"
-        class="clickable"
-      ></a-entity>
+      <!-- Monuments -->
+      <a-entity id="scene1" gltf-model="/assets/models/hampi-scene1.glb" position="0 0 -5" scale="4 4 4"></a-entity>
+      <a-entity id="scene2" gltf-model="/assets/models/hampi-scene2.glb" position="0 0 -25" scale="4 4"></a-entity>
+      <a-entity id="scene3" gltf-model="/assets/models/hampi-scene3.glb" position="0 0 -45" scale="4 4 4"></a-entity>
     </a-scene>
 
     <script>
-      const scenes = [
+      const narrationPoints = [
         {
-          title: "Virupaksha Temple Entrance",
-          modelUrl: "/assets/models/hampi-scene1.glb",
-          narration: {
-            en: "Welcome to the sacred entrance of the Virupaksha Temple, Hampi. This temple has been a place of worship for over a thousand years."
-          },
-          ambience: "/assets/sounds/temple_bells.mp3"
+          id: 'scene1',
+          text: 'Welcome to the entrance of Virupaksha Temple in Hampi, one of the oldest functioning temples in India.'
         },
         {
-          title: "Stone Chariot at Vittala Temple",
-          modelUrl: "/assets/models/hampi-scene2.glb",
-          narration: {
-            en: "Now you’re standing before the iconic Stone Chariot at Vittala Temple, a symbol of Hampi's architectural brilliance."
-          },
-          ambience: "/assets/sounds/market_ambience.mp3"
+          id: 'scene2',
+          text: 'This is the iconic Stone Chariot, a symbol of Hampi\'s rich Vijayanagara heritage.'
+        },
+        {
+          id: 'scene3',
+          text: 'Now you see the elegant Lotus Mahal, a perfect blend of Indo-Islamic architecture within the royal enclosure.'
         }
       ];
 
-      let currentScene = 0;
-      const sceneEntity = document.getElementById('sceneModel');
-      const assets = document.getElementById('modelAssets');
-      const sceneTitle = document.getElementById('sceneTitle');
-      const nextBtn = document.getElementById('nextBtn');
-      const navArrow = document.getElementById('navArrow');
+      let spoken = {};
 
-      function loadScene(index) {
-        const scene = scenes[index];
-        sceneTitle.innerText = scene.title;
-
-        // Clear previous
-        assets.innerHTML = '';
-        sceneEntity.innerHTML = '';
-        sceneEntity.removeAttribute('gltf-model');
-        navArrow.setAttribute('visible', 'false');
-        nextBtn.style.display = "none";
-
-        const assetId = `model${index}`;
-        const assetItem = document.createElement('a-asset-item');
-        assetItem.setAttribute('id', assetId);
-        assetItem.setAttribute('src', scene.modelUrl);
-
-        assetItem.addEventListener('loaded', () => {
-          sceneEntity.setAttribute('gltf-model', `#${assetId}`);
-        });
-
-        assets.appendChild(assetItem);
-
-        // Ambient sound
-        if (scene.ambience) {
-          const soundEntity = document.createElement('a-entity');
-          soundEntity.setAttribute('sound', `src: ${scene.ambience}; autoplay: true; loop: true`);
-          sceneEntity.appendChild(soundEntity);
-        }
-
-        // Narration with callback
-        speak(scene.narration.en, () => {
-          nextBtn.style.display = "block";
-          navArrow.setAttribute('visible', 'true');
-        });
-      }
-
-      function speak(text, onEnd) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        utterance.rate = 1;
-        utterance.pitch = 1;
-        utterance.onend = onEnd;
-        speechSynthesis.cancel();
-        speechSynthesis.speak(utterance);
-      }
-
-      function loadNextScene() {
-        if (currentScene < scenes.length - 1) {
-          currentScene++;
-          loadScene(currentScene);
-        } else {
-          alert("You've completed the walkthrough!");
+      function speak(text) {
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'en-IN';
+          speechSynthesis.cancel(); // stop any previous speech
+          speechSynthesis.speak(utterance);
         }
       }
 
-      window.onload = () => {
-        navArrow.addEventListener('click', loadNextScene);
-        loadScene(currentScene);
-      };
+      AFRAME.registerComponent('narration-checker', {
+        tick: function () {
+          const cam = document.querySelector('#rig').object3D;
+          narrationPoints.forEach(point => {
+            const entity = document.getElementById(point.id);
+            const distance = cam.position.distanceTo(entity.object3D.position);
+            if (distance < 6 && !spoken[point.id]) {
+              speak(point.text);
+              spoken[point.id] = true;
+            }
+          });
+        }
+      });
+
+      document.querySelector('a-scene').setAttribute('narration-checker', '');
     </script>
   </body>
 </html>
