@@ -26,9 +26,10 @@ const HomePage = () => {
         </div>
         <h2 className="tagline">Explore India’s heritage and culture</h2>
         <div className="button-group">
-          <button className="primary-btn">Plan My Journey</button>
+          <button className="primary-btn" onClick={() => navigate('/plan-my-journey')}>Plan My Journey</button>
           <button className="secondary-btn" onClick={() => navigate('/explore-rituals')}>Explore Rituals</button>
-          <button className="help-btn">Get Local Help</button>
+          <button className="help-btn" onClick={() => navigate('/local-help')}>Get Local Help</button>
+          <button className="culinary-btn" onClick={() => navigate('/culinary')}>Culinary</button> {/* 🍲 New Button */}
         </div>
       </main>
     </div>
